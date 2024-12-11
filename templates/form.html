@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/public/main.css">
+    <title>PAGODA</title>
+    <script src="/public/script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Загрузите Excel файл</h1>
+        <p>Мы сделаем погоду туда сюда и вернём обратно.</p>
+        <form id="upload-form" method="POST" enctype="multipart/form-data">
+            <input type="file" name="excel_file" id="excel-file" accept=".xlsx, .xls, .xlsm" required>
+            <button type="submit">Загрузить и обновить</button>
+        </form>
+    </div>
+</body>
+</html>
