@@ -1,20 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/public/main.css">
-    <title>PAGODA</title>
-    <script src="/public/script.js" defer></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Загрузите Excel файл</h1>
-        <p>Мы сделаем погоду туда сюда и вернём обратно.</p>
-        <form id="upload-form" method="POST" enctype="multipart/form-data">
-            <input type="file" name="excel_file" id="excel-file" accept=".xlsx, .xls, .xlsm" required>
-            <button type="submit">Загрузить и обновить</button>
-        </form>
-    </div>
-</body>
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Прогноз погоды</title>
+        <link rel="stylesheet" href="/public/main.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>Прогноз погоды</h1>
+
+            <div class="weather-tables">
+                <div class="weather-table">
+                    <h2>
+                        Прогноз на завтра (<span id="tomorrow-date"></span>)
+                    </h2>
+                    <table id="tomorrow-table"></table>
+                </div>
+
+                <div class="weather-table">
+                    <h2>
+                        Прогноз на послезавтра (<span id="dayafter-date"></span
+                        >)
+                    </h2>
+                    <table id="dayafter-table"></table>
+                </div>
+            </div>
+
+            <div class="export-buttons">
+                <button id="export-ae">Экспорт для After Effects</button>
+                <div id="loading" class="loading" style="display: none">
+                    Загрузка...
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="notification error"></div>
+        <div id="success-message" class="notification success"></div>
+
+        <script src="/public/script.js"></script>
+    </body>
 </html>
