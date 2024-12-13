@@ -1,8 +1,0 @@
-{
-  "require": {
-    "phpoffice/phpspreadsheet": "^1.29",
-    "guzzlehttp/guzzle": "^7.0",
-    "ext-json": "*",
-    "ext-fileinfo": "*"
-  }
-}
