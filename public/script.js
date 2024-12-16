@@ -116,14 +116,14 @@ class WeatherService {
 
   getWindDirection(degrees) {
     const directions = [
-      "Северный",
-      "Северо-Восточный",
-      "Восточный",
-      "Юго-Восточный",
-      "Южный",
-      "Юго-Западный",
-      "Западный",
-      "Северо-Западный",
+      "С",
+      "СВ",
+      "В",
+      "ЮВ",
+      "Ю",
+      "ЮЗ",
+      "З",
+      "СЗ",
     ];
     return directions[Math.round(degrees / 45) % 8];
   }
@@ -319,8 +319,10 @@ class WeatherApp {
 
   onDatesChange(dates) {
     this.selectedDates = dates;
-    if (dates.length > 0) {
+    if (dates.length >= 2) {
       this.loadWeatherData();
+    } else if (dates.length > 0) {
+      this.showError("Пожалуйста, выберите как минимум две даты");
     }
   }
 
@@ -394,6 +396,10 @@ class WeatherApp {
   }
 
   exportForAE() {
+    if (this.selectedDates.length < 2) {
+      this.showError("Необходимо выбрать как минимум две даты перед экспортом");
+      return;
+    }
     const aeData = this.formatDataForAE();
     this.saveToWorkDirectory(aeData);
   }
@@ -403,16 +409,10 @@ class WeatherApp {
 
     // Создаем шаблон с пустыми значениями для всех полей
     for (let i = 1; i <= 15; i++) {
-      // Особые случаи для city
-      if (i === 2) {
-        aeData[0][`${i}city`] = "-";
-      } else if (i === 12) {
-        aeData[0][`${i}city`] = " ";
-      } else {
-        aeData[0][`${i}city`] = "";
-      }
+      // Города из списка
+      aeData[0][`${i}city`] = this.weatherService.cities[i - 1] || "";
 
-      // Устанавливаем специфические значения Graf для каждого города
+      // Graf значения из примера
       const grafValues = {
         1: "800, 0, 800, 200",
         2: "800, 0, 800, 0",
@@ -432,9 +432,8 @@ class WeatherApp {
       };
       aeData[0][`${i}Graf`] = grafValues[i];
 
-      // Добавляем все остальные поля с пустыми значениями
-      const suffixes = ["T", "AT"];
-      suffixes.forEach((suffix) => {
+      // Добавляем поля с температурой и другими данными
+      ["T", "AT"].forEach((suffix) => {
         aeData[0][`${i}TempDay${suffix}`] = "";
         aeData[0][`${i}TempNight${suffix}`] = "";
         aeData[0][`${i}IconDay${suffix}`] = "iconClouds.mov";
@@ -453,14 +452,14 @@ class WeatherApp {
     }
 
     // Добавляем специальные поля для первого города
-    aeData[0]["1TxtDataT"] = "  ";
-    aeData[0]["1TxtDataAT"] = "  ";
-    aeData[0]["1TxtTxtData"] = "    ";
-    aeData[0]["1TxtMulticity"] = "   ";
-    aeData[0]["1TxtCapital"] = "  ";
-    aeData[0]["1TxtSuorce"] = "   ";
+    aeData[0]["1TxtDataT"] = "Прогноз на ";
+    aeData[0]["1TxtDataAT"] = "Прогноз на ";
+    aeData[0]["1TxtTxtData"] = "Прогноз на ";
+    aeData[0]["1TxtMulticity"] = "Погода в Омской области";
+    aeData[0]["1TxtCapital"] = "Погода в Омске";
+    aeData[0]["1TxtSuorce"] = "По информации Омского гидрометцентра";
 
-    // Заполняем данными только те поля, для которых есть API данные
+    // Заполняем данными из API
     this.weatherService.cities.forEach((city, index) => {
       const cityNum = index + 1;
       const data = this.weatherData[city];
@@ -471,15 +470,11 @@ class WeatherApp {
           const suffix = dateIndex === 0 ? "T" : "AT";
 
           if (data[dayKey]) {
-            // Температура (с правильными знаками)
+            // Температура с градусом
             aeData[0][`${cityNum}TempDay${suffix}`] =
-              data[dayKey].tempDay <= 0
-                ? data[dayKey].tempDay.toString()
-                : `+${data[dayKey].tempDay}`;
+              `${data[dayKey].tempDay > 0 ? "+" : ""}${data[dayKey].tempDay}°`;
             aeData[0][`${cityNum}TempNight${suffix}`] =
-              data[dayKey].tempNight <= 0
-                ? data[dayKey].tempNight.toString()
-                : `+${data[dayKey].tempNight}`;
+              `${data[dayKey].tempNight > 0 ? "+" : ""}${data[dayKey].tempNight}°`;
 
             // Иконки погоды
             aeData[0][`${cityNum}IconDay${suffix}`] = this.getIconName(
@@ -489,34 +484,56 @@ class WeatherApp {
               data[dayKey].weatherNight,
             );
 
-            // Направление ветра (пустое)
-            aeData[0][`${cityNum}WindDay${suffix}`] = "";
-            aeData[0][`${cityNum}WindNight${suffix}`] = "";
-
-            // Сила ветра
+            // Направление и сила ветра
+            aeData[0][`${cityNum}WindDay${suffix}`] =
+              `ветер ${data[dayKey].windDirectionDay}`;
+            aeData[0][`${cityNum}WindNight${suffix}`] =
+              `ветер ${data[dayKey].windDirectionNight}`;
             aeData[0][`${cityNum}ForceDay${suffix}`] =
               `${data[dayKey].windSpeedDay} м/с`;
             aeData[0][`${cityNum}ForceNight${suffix}`] =
               `${data[dayKey].windSpeedNight} м/с`;
 
-            // Давление (число и пробел)
+            // Давление
             aeData[0][`${cityNum}PressureDay${suffix}`] =
-              `${data[dayKey].pressure} `;
+              `${data[dayKey].pressure} мм`;
             aeData[0][`${cityNum}PressureNight${suffix}`] =
-              `${data[dayKey].pressure} `;
+              `${data[dayKey].pressure} мм`;
 
             // Форматирование дат
             const formattedDate = date.getDate().toString().padStart(2, "0");
-            const formattedMonth = (date.getMonth() + 1)
-              .toString()
-              .padStart(2, "0");
+            const monthNames = [
+              "января",
+              "февраля",
+              "марта",
+              "апреля",
+              "мая",
+              "июня",
+              "июля",
+              "августа",
+              "сентября",
+              "октября",
+              "ноября",
+              "декабря",
+            ];
+            const dayNames = [
+              "понедельник",
+              "вторник",
+              "среда",
+              "четверг",
+              "пятница",
+              "суббота",
+              "воскресенье",
+            ];
 
-            aeData[0][`${cityNum}ddmmm${suffix}`] = `${formattedDate} `;
-            aeData[0][`${cityNum}ddmmmTxt${suffix}`] = `${formattedDate} . `;
+            aeData[0][`${cityNum}ddmmm${suffix}`] =
+              `${formattedDate} ${monthNames[date.getMonth()]}`;
+            aeData[0][`${cityNum}ddmmmTxt${suffix}`] =
+              `${formattedDate} ${monthNames[date.getMonth()]}. ${dayNames[date.getDay()]}`;
             aeData[0][`${cityNum}DayDdMm${suffix}`] =
-              `, ${formattedDate}.${formattedMonth}`;
+              `День, ${formattedDate}.${(date.getMonth() + 1).toString().padStart(2, "0")}`;
             aeData[0][`${cityNum}NightDdMm${suffix}`] =
-              `, ${formattedDate}.${formattedMonth}`;
+              `Ночь, ${formattedDate}.${(date.getMonth() + 1).toString().padStart(2, "0")}`;
           }
         });
       }
