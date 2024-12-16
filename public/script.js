@@ -115,16 +115,7 @@ class WeatherService {
   }
 
   getWindDirection(degrees) {
-    const directions = [
-      "С",
-      "СВ",
-      "В",
-      "ЮВ",
-      "Ю",
-      "ЮЗ",
-      "З",
-      "СЗ",
-    ];
+    const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"];
     return directions[Math.round(degrees / 45) % 8];
   }
 
@@ -559,24 +550,49 @@ class WeatherApp {
 
   async saveToWorkDirectory(data) {
     try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: "MeteoData.json",
-        startIn: "downloads",
-        types: [
-          {
-            description: "JSON Files",
-            accept: { "application/json": [".json"] },
-          },
-        ],
-      });
+      // Путь по умолчанию
+      const defaultPath = "C:\\WORK_2020\\POGODA";
+      const filename = "MeteoData.json"; // Фиксированное имя файла
 
-      const writable = await handle.createWritable();
-      await writable.write(JSON.stringify(data, null, 2));
-      await writable.close();
+      try {
+        // Пробуем получить доступ к директории
+        const dirHandle = await window.showDirectoryPicker({
+          startIn: defaultPath,
+          mode: "readwrite",
+        });
 
-      this.showSuccess("Файл успешно сохранен");
+        // Создаем/перезаписываем файл
+        const fileHandle = await dirHandle.getFileHandle(filename, {
+          create: true,
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+
+        this.showSuccess("Файл успешно сохранен в указанную директорию");
+      } catch (dirError) {
+        // Если не удалось получить доступ к директории, пробуем сохранить в загрузки
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          startIn: "downloads",
+          types: [
+            {
+              description: "JSON Files",
+              accept: { "application/json": [".json"] },
+            },
+          ],
+        });
+
+        const writable = await handle.createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+
+        this.showSuccess("Файл успешно сохранен в загрузки");
+      }
     } catch (err) {
+      console.error("Ошибка при сохранении:", err);
       this.showError("Ошибка при сохранении файла");
+      // Fallback: скачивание напрямую в загрузки браузера
       this.downloadJson(data, "MeteoData.json");
     }
   }
