@@ -398,6 +398,19 @@ class WeatherApp {
   formatDataForAE() {
     const aeData = [{}];
 
+    // Формируем список дней недели для отображения
+    const daysOfWeek = this.selectedDates
+      .map((date) => date.toLocaleString("ru", { weekday: "long" }))
+      .join(", ");
+
+    // Добавляем текст "Прогноз на" с днями недели
+    aeData[0]["1TxtDataT"] = `Прогноз на ${daysOfWeek}`;
+    aeData[0]["1TxtDataAT"] = `Прогноз на ${daysOfWeek}`;
+    aeData[0]["1TxtTxtData"] = `Прогноз на ${daysOfWeek}`;
+    aeData[0]["1TxtMulticity"] = "Погода в Омской области";
+    aeData[0]["1TxtCapital"] = "Погода в Омске";
+    aeData[0]["1TxtSuorce"] = "По информации Омского гидрометцентра";
+
     // Создаем шаблон с пустыми значениями для всех полей
     for (let i = 1; i <= 15; i++) {
       // Города из списка

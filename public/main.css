@@ -38,11 +38,11 @@
     padding: 0;
     box-sizing: border-box;
     transition:
-        background-color var(--transition-time),
-        color var(--transition-time),
-        border-color var(--transition-time),
-        box-shadow var(--transition-time),
-        transform var(--transition-time);
+    background-color var(--transition-time),
+    color var(--transition-time),
+    border-color var(--transition-time),
+    box-shadow var(--transition-time),
+    transform var(--transition-time);
 }
 
 body {
