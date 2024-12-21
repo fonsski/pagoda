@@ -400,43 +400,40 @@ class WeatherApp {
 
     // Формируем список дней недели для отображения
     const daysOfWeek = this.selectedDates
-      .map((date) => date.toLocaleString("ru", { weekday: "long" }))
+      .map((date) => {
+        const dayName = date.toLocaleString("ru", { weekday: "long" });
+        // Заменяем пятницу и субботу
+        if (dayName === "пятница") return "пятницу";
+        if (dayName === "суббота") return "субботу";
+        return dayName;
+      })
       .join(", ");
 
-    // Добавляем текст "Прогноз на" с днями недели
-    aeData[0]["1TxtDataT"] = `Прогноз на ${daysOfWeek}`;
-    aeData[0]["1TxtDataAT"] = `Прогноз на ${daysOfWeek}`;
-    aeData[0]["1TxtTxtData"] = `Прогноз на ${daysOfWeek}`;
-    aeData[0]["1TxtMulticity"] = "Погода в Омской области";
-    aeData[0]["1TxtCapital"] = "Погода в Омске";
-    aeData[0]["1TxtSuorce"] = "По информации Омского гидрометцентра";
-
     // Создаем шаблон с пустыми значениями для всех полей
-    for (let i = 1; i <= 15; i++) {
-      // Города из списка
-      aeData[0][`${i}city`] = this.weatherService.cities[i - 1] || "";
+    const grafValues = {
+      1: "800, 0, 800, 200",
+      2: "800, 0, 800, 0",
+      3: "800, 0, 800, 0",
+      4: "600, 0, 800, 0",
+      5: "600, 0, 800, 200",
+      6: "640, 0, 800, 0",
+      7: "800, 0, 800, 160",
+      8: "640, 0, 800, 160",
+      9: "400, 0, 800, 0",
+      10: "480, 0, 800, 160",
+      11: "480, 160, 800, 0",
+      12: "320, 0, 800, 320",
+      13: "200, 0, 800, 200",
+      14: "400, 0, 800, 200",
+      15: "400, 0, 800, 200",
+    };
 
-      // Graf значения из примера
-      const grafValues = {
-        1: "800, 0, 800, 200",
-        2: "800, 0, 800, 0",
-        3: "800, 0, 800, 0",
-        4: "600, 0, 800, 0",
-        5: "600, 0, 800, 200",
-        6: "640, 0, 800, 0",
-        7: "800, 0, 800, 160",
-        8: "640, 0, 800, 160",
-        9: "400, 0, 800, 0",
-        10: "480, 0, 800, 160",
-        11: "480, 160, 800, 0",
-        12: "320, 0, 800, 320",
-        13: "200, 0, 800, 200",
-        14: "400, 0, 800, 200",
-        15: "400, 0, 800, 200",
-      };
+    for (let i = 1; i <= 15; i++) {
+      // Добавляем данные городов
+      aeData[0][`${i}city`] = this.weatherService.cities[i - 1] || "";
       aeData[0][`${i}Graf`] = grafValues[i];
 
-      // Добавляем поля с температурой и другими данными
+      // Поля для температур, ветра и давления
       ["T", "AT"].forEach((suffix) => {
         aeData[0][`${i}TempDay${suffix}`] = "";
         aeData[0][`${i}TempNight${suffix}`] = "";
@@ -454,14 +451,15 @@ class WeatherApp {
         aeData[0][`${i}NightDdMm${suffix}`] = "";
       });
     }
-
     // Добавляем специальные поля для первого города
-    aeData[0]["1TxtDataT"] = "Прогноз на ";
-    aeData[0]["1TxtDataAT"] = "Прогноз на ";
-    aeData[0]["1TxtTxtData"] = "Прогноз на ";
-    aeData[0]["1TxtMulticity"] = "Погода в Омской области";
-    aeData[0]["1TxtCapital"] = "Погода в Омске";
-    aeData[0]["1TxtSuorce"] = "По информации Омского гидрометцентра";
+    Object.assign(aeData[0], {
+      "1TxtDataT": `Прогноз на ${daysOfWeek}`,
+      "1TxtDataAT": `Прогноз на ${daysOfWeek}`,
+      "1TxtTxtData": `Прогноз на ${daysOfWeek}`,
+      "1TxtMulticity": "Погода в Омской области",
+      "1TxtCapital": "Погода в Омске",
+      "1TxtSuorce": "По информации Омского гидрометцентра",
+    });
 
     // Заполняем данными из API
     this.weatherService.cities.forEach((city, index) => {
@@ -521,14 +519,22 @@ class WeatherApp {
               "декабря",
             ];
             const dayNames = [
+              "воскресенье",
               "понедельник",
               "вторник",
               "среда",
               "четверг",
               "пятница",
               "суббота",
-              "воскресенье",
             ];
+
+            // Отладочная информация для проверки
+            console.log("Debug Info:", {
+              cityNum,
+              formattedDate,
+              monthName: monthNames[date.getMonth()],
+              dayName: dayNames[date.getDay()],
+            });
 
             aeData[0][`${cityNum}ddmmm${suffix}`] =
               `${formattedDate} ${monthNames[date.getMonth()]}`;
