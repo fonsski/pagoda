@@ -407,7 +407,8 @@ class WeatherApp {
         if (dayName === "суббота") return "субботу";
         return dayName;
       })
-      .join(", ");
+      .join(", ")
+      .replace(/, ([^,]+)$/, " и $1");
 
     // Создаем шаблон с пустыми значениями для всех полей
     const grafValues = {
