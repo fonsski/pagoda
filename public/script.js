@@ -2,7 +2,7 @@ class ThemeManager {
   constructor() {
     this.themeCheckbox = document.getElementById("theme-checkbox");
     this.init();
-  }
+   }
 
   init() {
     // Загружаем сохраненную тему
