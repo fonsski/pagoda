@@ -2,7 +2,7 @@ class ThemeManager {
   constructor() {
     this.themeCheckbox = document.getElementById("theme-checkbox");
     this.init();
-   }
+  }
 
   init() {
     // Загружаем сохраненную тему
@@ -72,7 +72,7 @@ class WeatherService {
   async getWeatherData(city, dates) {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city},ru&units=metric&lang=ru&appid=${this.apiKey}`,
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city},ru&units=metric&lang=ru&appid=${this.apiKey}`
       );
       const data = await response.json();
 
@@ -198,7 +198,7 @@ class DateRangePicker {
 
     this.container.querySelector(".month-display").textContent = new Date(
       year,
-      month,
+      month
     ).toLocaleString("ru", { month: "long", year: "numeric" });
 
     const firstDay = new Date(year, month, 1);
@@ -223,7 +223,7 @@ class DateRangePicker {
 
       if (currentDate >= new Date()) {
         dateElement.addEventListener("click", () =>
-          this.selectDate(currentDate),
+          this.selectDate(currentDate)
         );
 
         if (this.isDateSelected(currentDate)) {
@@ -253,7 +253,7 @@ class DateRangePicker {
 
     const dateString = date.toDateString();
     const index = this.selectedDates.findIndex(
-      (d) => d.toDateString() === dateString,
+      (d) => d.toDateString() === dateString
     );
 
     if (index === -1) {
@@ -269,7 +269,7 @@ class DateRangePicker {
 
   isDateSelected(date) {
     return this.selectedDates.some(
-      (d) => d.toDateString() === date.toDateString(),
+      (d) => d.toDateString() === date.toDateString()
     );
   }
 
@@ -296,7 +296,7 @@ class WeatherApp {
 
     this.dateRangePicker = new DateRangePicker(
       document.getElementById("calendar"),
-      (dates) => this.onDatesChange(dates),
+      (dates) => this.onDatesChange(dates)
     );
 
     this.initializeUI();
@@ -323,7 +323,7 @@ class WeatherApp {
       for (const city of this.weatherService.cities) {
         this.weatherData[city] = await this.weatherService.getWeatherData(
           city,
-          this.selectedDates,
+          this.selectedDates
         );
       }
       this.updateTables();
@@ -398,18 +398,6 @@ class WeatherApp {
   formatDataForAE() {
     const aeData = [{}];
 
-    // Формируем список дней недели для отображения
-    const daysOfWeek = this.selectedDates
-      .map((date) => {
-        const dayName = date.toLocaleString("ru", { weekday: "long" });
-        // Заменяем пятницу и субботу
-        if (dayName === "пятница") return "пятницу";
-        if (dayName === "суббота") return "субботу";
-        return dayName;
-      })
-      .join(", ")
-      .replace(/, ([^,]+)$/, " и $1");
-
     // Создаем шаблон с пустыми значениями для всех полей
     const grafValues = {
       1: "800, 0, 800, 200",
@@ -433,7 +421,6 @@ class WeatherApp {
       // Добавляем данные городов
       aeData[0][`${i}city`] = this.weatherService.cities[i - 1] || "";
       aeData[0][`${i}Graf`] = grafValues[i];
-
       // Поля для температур, ветра и давления
       ["T", "AT"].forEach((suffix) => {
         aeData[0][`${i}TempDay${suffix}`] = "";
@@ -452,11 +439,14 @@ class WeatherApp {
         aeData[0][`${i}NightDdMm${suffix}`] = "";
       });
     }
+
     // Добавляем специальные поля для первого города
     Object.assign(aeData[0], {
-      "1TxtDataT": `Прогноз на ${daysOfWeek}`,
-      "1TxtDataAT": `Прогноз на ${daysOfWeek}`,
-      "1TxtTxtData": `Прогноз на ${daysOfWeek}`,
+      "1TxtDataT": `Прогноз на ${this.formatDate(this.selectedDates[0])}`,
+      "1TxtDataAT": `Прогноз на ${this.formatDate(this.selectedDates[1])}`,
+      "1TxtTxtData": `Прогноз на ${this.selectedDates
+        .map((date) => this.formatDate(date))
+        .join(", ")}`,
       "1TxtMulticity": "Погода в Омской области",
       "1TxtCapital": "Погода в Омске",
       "1TxtSuorce": "По информации Омского гидрометцентра",
@@ -466,43 +456,45 @@ class WeatherApp {
     this.weatherService.cities.forEach((city, index) => {
       const cityNum = index + 1;
       const data = this.weatherData[city];
-
       if (data) {
         this.selectedDates.forEach((date, dateIndex) => {
           const dayKey = `day${dateIndex + 1}`;
           const suffix = dateIndex === 0 ? "T" : "AT";
-
           if (data[dayKey]) {
             // Температура с градусом
-            aeData[0][`${cityNum}TempDay${suffix}`] =
-              `${data[dayKey].tempDay > 0 ? "+" : ""}${data[dayKey].tempDay}°`;
-            aeData[0][`${cityNum}TempNight${suffix}`] =
-              `${data[dayKey].tempNight > 0 ? "+" : ""}${data[dayKey].tempNight}°`;
-
+            aeData[0][`${cityNum}TempDay${suffix}`] = `${
+              data[dayKey].tempDay > 0 ? "+" : ""
+            }${data[dayKey].tempDay}°`;
+            aeData[0][`${cityNum}TempNight${suffix}`] = `${
+              data[dayKey].tempNight > 0 ? "+" : ""
+            }${data[dayKey].tempNight}°`;
             // Иконки погоды
             aeData[0][`${cityNum}IconDay${suffix}`] = this.getIconName(
-              data[dayKey].weatherDay,
+              data[dayKey].weatherDay
             );
             aeData[0][`${cityNum}IconNight${suffix}`] = this.getIconName(
-              data[dayKey].weatherNight,
+              data[dayKey].weatherNight
             );
-
             // Направление и сила ветра
-            aeData[0][`${cityNum}WindDay${suffix}`] =
-              `ветер ${data[dayKey].windDirectionDay}`;
-            aeData[0][`${cityNum}WindNight${suffix}`] =
-              `ветер ${data[dayKey].windDirectionNight}`;
-            aeData[0][`${cityNum}ForceDay${suffix}`] =
-              `${data[dayKey].windSpeedDay} м/с`;
-            aeData[0][`${cityNum}ForceNight${suffix}`] =
-              `${data[dayKey].windSpeedNight} м/с`;
-
+            aeData[0][
+              `${cityNum}WindDay${suffix}`
+            ] = `ветер ${data[dayKey].windDirectionDay}`;
+            aeData[0][
+              `${cityNum}WindNight${suffix}`
+            ] = `ветер ${data[dayKey].windDirectionNight}`;
+            aeData[0][
+              `${cityNum}ForceDay${suffix}`
+            ] = `${data[dayKey].windSpeedDay} м/с`;
+            aeData[0][
+              `${cityNum}ForceNight${suffix}`
+            ] = `${data[dayKey].windSpeedNight} м/с`;
             // Давление
-            aeData[0][`${cityNum}PressureDay${suffix}`] =
-              `${data[dayKey].pressure} мм`;
-            aeData[0][`${cityNum}PressureNight${suffix}`] =
-              `${data[dayKey].pressure} мм`;
-
+            aeData[0][
+              `${cityNum}PressureDay${suffix}`
+            ] = `${data[dayKey].pressure} мм`;
+            aeData[0][
+              `${cityNum}PressureNight${suffix}`
+            ] = `${data[dayKey].pressure} мм`;
             // Форматирование дат
             const formattedDate = date.getDate().toString().padStart(2, "0");
             const monthNames = [
@@ -528,29 +520,46 @@ class WeatherApp {
               "пятница",
               "суббота",
             ];
-
-            // Отладочная информация для проверки
-            console.log("Debug Info:", {
-              cityNum,
-              formattedDate,
-              monthName: monthNames[date.getMonth()],
-              dayName: dayNames[date.getDay()],
-            });
-
-            aeData[0][`${cityNum}ddmmm${suffix}`] =
-              `${formattedDate} ${monthNames[date.getMonth()]}`;
-            aeData[0][`${cityNum}ddmmmTxt${suffix}`] =
-              `${formattedDate} ${monthNames[date.getMonth()]}. ${dayNames[date.getDay()]}`;
-            aeData[0][`${cityNum}DayDdMm${suffix}`] =
-              `День, ${formattedDate}.${(date.getMonth() + 1).toString().padStart(2, "0")}`;
-            aeData[0][`${cityNum}NightDdMm${suffix}`] =
-              `Ночь, ${formattedDate}.${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+            aeData[0][`${cityNum}ddmmm${suffix}`] = `${formattedDate} ${
+              monthNames[date.getMonth()]
+            }`;
+            aeData[0][`${cityNum}ddmmmTxt${suffix}`] = `${formattedDate} ${
+              monthNames[date.getMonth()]
+            }. ${dayNames[date.getDay()]}`;
+            aeData[0][
+              `${cityNum}DayDdMm${suffix}`
+            ] = `День, ${formattedDate}.${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}`;
+            aeData[0][
+              `${cityNum}NightDdMm${suffix}`
+            ] = `Ночь, ${formattedDate}.${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}`;
           }
         });
       }
     });
-
     return aeData;
+  }
+
+  formatDate(date) {
+    const day = date.getDate().toString().padStart(2, "0");
+    const monthNames = [
+      "января",
+      "февраля",
+      "марта",
+      "апреля",
+      "мая",
+      "июня",
+      "июля",
+      "августа",
+      "сентября",
+      "октября",
+      "ноября",
+      "декабря",
+    ];
+    return `${day} ${monthNames[date.getMonth()]}`;
   }
 
   getIconName(weather) {
