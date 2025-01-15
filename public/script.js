@@ -2,7 +2,7 @@ class ThemeManager {
   constructor() {
     this.themeCheckbox = document.getElementById("theme-checkbox");
     this.init();
-  }
+}
 
   init() {
     // Загружаем сохраненную тему
@@ -75,7 +75,7 @@ class WeatherService {
         `https://api.openweathermap.org/data/2.5/forecast?q=${city},ru&units=metric&lang=ru&appid=${this.apiKey}`,
       );
       const data = await response.json();
-
+      console.log(data);
       if (data.cod !== "200") {
         throw new Error(data.message);
       }
@@ -220,8 +220,10 @@ class DateRangePicker {
     for (let i = 1; i <= daysInMonth; i++) {
       const dateElement = this.createDateElement(i);
       const currentDate = new Date(year, month, i);
-
-      if (currentDate >= new Date()) {
+      let yesterday = new Date(new Date().getTime() - (24 * 60 * 60 * 1000));
+      // console.log(new Date());
+      // console.log(currentDate.getDate());
+      if (currentDate >= yesterday) {
         dateElement.addEventListener("click", () =>
           this.selectDate(currentDate),
         );
@@ -462,8 +464,8 @@ class WeatherApp {
     };
 
     Object.assign(aeData[0], {
-      "1TxtDataT": `Прогноз на ${this.formatDate(this.selectedDates[0])}`,
-      "1TxtDataAT": `Прогноз на ${this.formatDate(this.selectedDates[1])}`,
+      "1TxtDataT": `Прогноз на ${formatDayName(dayNames[this.selectedDates[0].getDay()])}`,
+      "1TxtDataAT": `Прогноз на ${formatDayName(dayNames[this.selectedDates[1].getDay()])}`,
       "1TxtTxtData": `Прогноз на ${this.selectedDates
         .map((date) => formatDayName(dayNames[date.getDay()]))
         .join(" и ")}`,
